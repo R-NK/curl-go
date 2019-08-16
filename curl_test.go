@@ -81,8 +81,8 @@ func Test_parseHeader(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	type args struct {
-		u      string
-		header string
+		u       string
+		headers []string
 	}
 
 	tests := []struct {
@@ -90,7 +90,7 @@ func TestGet(t *testing.T) {
 		args args
 		want string
 	}{
-		{name: "success", args: args{u: "", header: "X-Treasure: 🍺"}, want: "🍺"},
+		{name: "success", args: args{u: "", headers: []string{"X-Treasure: 🍺"}}, want: "🍺"},
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -103,7 +103,7 @@ func TestGet(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := Get(server.URL, tt.args.header)
+			resp, err := Get(server.URL, tt.args.headers)
 			defer resp.Body.Close()
 			if err != nil {
 				log.Fatal(err)
