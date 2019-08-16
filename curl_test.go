@@ -124,21 +124,22 @@ func TestGet(t *testing.T) {
 
 func TestPost(t *testing.T) {
 	type args struct {
-		u      string
-		header string
-		body   string
+		u       string
+		headers []string
+		body    string
 	}
 	tests := []struct {
 		name string
 		args args
 		want string
 	}{
-		{name: "with json", args: args{u: "", header: "X-Treasure: 🍺", body: `{"ajito":"🍺"}`}, want: `{"ajito":"🍺"}`},
+		{name: "with json", args: args{u: "", headers: []string{"Content-Type: application/json"}, body: `{"ajito":"🍺"}`}, want: `{"ajito":"🍺"}`},
+		{name: "with json and multi header", args: args{u: "", headers: []string{"Content-Type: application/json", "X-Treasure: 🍺"}, body: `{"ajito":"🍺"}`}, want: `{"ajito":"🍺"}`},
+		{name: "with urlencoded data", args: args{u: "", headers: []string{"Content-Type:application/x-www-form-urlencoded"}, body: `text=hello`}, want: `text=hello`},
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Type", "text/plain")
 		b, _ := ioutil.ReadAll(r.Body)
 		w.Write(b)
 	}))
@@ -146,7 +147,7 @@ func TestPost(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := Post(server.URL, tt.args.header, tt.args.body)
+			resp, err := Post(server.URL, tt.args.headers, tt.args.body)
 			defer resp.Body.Close()
 			if err != nil {
 				log.Fatal(err)

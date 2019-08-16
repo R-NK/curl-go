@@ -53,15 +53,17 @@ func Get(u string, header string) (*http.Response, error) {
 }
 
 // Post method
-func Post(u string, header string, body string) (*http.Response, error) {
+func Post(u string, headers []string, body string) (*http.Response, error) {
 	req, err := http.NewRequest("POST", u, strings.NewReader(body))
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}
-	if header != "" {
-		headerKey, headerValue := parseHeader(header)
-		req.Header.Set(headerKey, headerValue)
+	if len(headers) > 0 {
+		for _, header := range headers {
+			headerKey, headerValue := parseHeader(header)
+			req.Header.Set(headerKey, headerValue)
+		}
 	}
 	client := new(http.Client)
 	resp, err := client.Do(req)
@@ -83,7 +85,7 @@ func parseHeader(rawHeader string) (key string, value string) {
 func main() {
 	var opts struct {
 		Method string `short:"X" description:"HTTP Method" default:"GET"`
-		Header string `short:"H" long:"header" description:"Change HTTP Header"`
+		Header string `short:"H" long:"header" description:"Change HTTP Header" default:"Content-Type:application/x-www-form-urlencoded"`
 	}
 	args, err := flags.Parse(&opts)
 	if err != nil {
